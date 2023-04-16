@@ -10,5 +10,7 @@ export type Node = {
 
 export type Path = {
     id: number,
-    path:string
+    path:string,
+    pathName:string,
+    name:string
 }

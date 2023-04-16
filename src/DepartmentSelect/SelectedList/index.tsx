@@ -1,96 +1,46 @@
 import styled from "styled-components";
 import { FC } from 'react'
-import CloseIcon from "./Close";
+import {Close as CloseIcon} from "./Icon";
+import { Path } from '../Tree/types'
 import { Tooltip,Empty } from "antd";
 import { textOverflow,scrollbar } from "../CommonStyle";
 
 type SelectedListProps = {
-  /**
-   * 是否多选
-   */
-  multiple?:boolean;
+  value:Path[];
+  onChange?:(value:Path[])=>void
 }
 
-const SelectedList:FC<SelectedListProps> = ({multiple}) => {
+const SelectedList:FC<SelectedListProps> = ({value,onChange}) => {
+
+  const deleteHandler = (index:number)=>{
+    const valueCopy = [...value]
+    valueCopy.splice(index,1)
+    onChange&&onChange(valueCopy)
+  }
+
   return (
     <Wrap>
       <List>
-        <Item>
-          <CloseBtn>
-            <CloseIcon />
-          </CloseBtn>
-          <Tooltip title="人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821">
-            <Title>
-              人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821
-            </Title>
-          </Tooltip>
-          <Tooltip title=" 招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部">
-            <Desc>
-              招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部
-            </Desc>
-          </Tooltip>
-        </Item>
-        <Item>
-          <CloseBtn>
-            <CloseIcon />
-          </CloseBtn>
-          <Tooltip title="人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821">
-            <Title>
-              人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821
-            </Title>
-          </Tooltip>
-          <Tooltip title=" 招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部">
-            <Desc>
-              招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部
-            </Desc>
-          </Tooltip>
-        </Item>
-        <Item>
-          <CloseBtn>
-            <CloseIcon />
-          </CloseBtn>
-          <Tooltip title="人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821">
-            <Title>
-              人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821
-            </Title>
-          </Tooltip>
-          <Tooltip title=" 招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部">
-            <Desc>
-              招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部
-            </Desc>
-          </Tooltip>
-        </Item>
-        <Item>
-          <CloseBtn>
-            <CloseIcon />
-          </CloseBtn>
-          <Tooltip title="人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821">
-            <Title>
-              人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821
-            </Title>
-          </Tooltip>
-          <Tooltip title=" 招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部">
-            <Desc>
-              招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部
-            </Desc>
-          </Tooltip>
-        </Item>
-        <Item>
-          <CloseBtn>
-            <CloseIcon />
-          </CloseBtn>
-          <Tooltip title="人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821">
-            <Title>
-              人力资源人力资源部人力资源部人力资源部人力资源部人力资源部部/12821
-            </Title>
-          </Tooltip>
-          <Tooltip title=" 招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部">
-            <Desc>
-              招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部招商银行/长春分行/人力资源部
-            </Desc>
-          </Tooltip>
-        </Item>
-        {/* <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> */}
+        {
+          value.length>0?(
+            value.map((item,index)=>(
+              <Item key={item.id}>
+                <CloseBtn onClick={()=>deleteHandler(index)}>
+                  <CloseIcon />
+                </CloseBtn>
+                <Tooltip title={<div>
+                  <div>{item.pathName.split('/').slice(-1)+'/'+item.id}</div>
+                  <div>{item.pathName+'/'+item.id}</div>
+                </div>}>
+                  <Title>{item.pathName.split('/').slice(-1)+'/'+item.id}</Title>
+                  <Desc>{item.pathName}</Desc>
+                </Tooltip>
+              </Item>
+            ))
+          ):(
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          )
+        }
       </List>
     </Wrap>
   );

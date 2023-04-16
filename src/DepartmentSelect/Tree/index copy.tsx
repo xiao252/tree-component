@@ -1,4 +1,4 @@
-import {useState,useCallback, useRef, useEffect,FC} from "react";
+import {useState,useCallback} from "react";
 import styled,{css} from 'styled-components'
 import { Checkbox } from 'antd'
 import { Node,Path } from './types'
@@ -6,17 +6,23 @@ import { Jia,Jian } from './Icon'
 import { textOverflow,scrollbar } from '../CommonStyle'
 import { tree } from "./data";
 
-type TreeProps ={
-  value:Path[],
-  onChange?:(value:Path[])=>void;
-  /**
-   * 是否多选
-   */
-  multiple?:boolean;
-}
+let value = [1211, 1213, 112];
+let path = [
+  {
+    id: 11,
+    path: "1/11"
+  },
+  {
+    id: 111,
+    path: "1/11/111"
+  },
+  {
+    id: 112,
+    path: "1/11/112"
+  }
+];
 
-const Tree:FC<TreeProps> = ({value,onChange,multiple}) => {
-  const path = useRef<Path[]>([])
+const Tree = () => {
   const [_,_setRender] = useState(0)
   const render = useCallback(() => {
     _setRender(Math.random()+Date.now())
@@ -36,19 +42,17 @@ const Tree:FC<TreeProps> = ({value,onChange,multiple}) => {
   const initSelected = (_tree:Node[], prentNode?:Node) => {
     _tree.forEach((item) => {
       item.prentNode = prentNode;
-      if (path.current.length > 0) {
-        path.current.forEach((pathItem) => {
+      if (path.length > 0) {
+        path.forEach((pathItem) => {
           const ids = pathItem.path.split("/");
           const index = ids.findIndex((id) => parseInt(id) == item.id);
-          //当前节点未被选中 & 是否是选中节点的父节点，如果是则设置为复选态
-          if (!path.current.find((item2)=>item2.id == item.id) && index != -1 && index < ids.length - 1) {
+          //判断是否是选中节点的父节点，如果是则设置为复选态
+          if (index != -1 && index < ids.length - 1) {
             item.status = "2";
           }
           if (pathItem.id === item.id) {
             item.status = "1";
-            // if(multiple){
-            //   childSelected(item);
-            // }
+            childSelected(item);
           }
         });
       } else {
@@ -60,22 +64,7 @@ const Tree:FC<TreeProps> = ({value,onChange,multiple}) => {
     });
   };
 
-  //节点全部重置
-  const nodeAllClear = (_tree:Node[])=>{
-    _tree.forEach((item) => {
-      item.status = '0';
-      if(item.child){
-        nodeAllClear(item.child)
-      }
-    })
-  }
-
-  useEffect(()=>{
-    path.current = value
-    nodeAllClear(tree)
-    initSelected(tree);
-    render()
-  },[value])
+  initSelected(tree);
 
   //根据id查找节点
   // const findeNode = (id, allTree) => {
@@ -98,11 +87,9 @@ const Tree:FC<TreeProps> = ({value,onChange,multiple}) => {
   //生成path节点
   const gennerPathNode = (node:Node) => {
     let idStr = node.id + "";
-    let nameStr = node.name + "";
     const prentLoop = (_node:Node) => {
       if (_node.prentNode) {
         idStr = `${_node.prentNode.id}/${idStr}`;
-        nameStr = `${_node.prentNode.name}/${nameStr}`;
         prentLoop(_node.prentNode);
       }
     };
@@ -110,9 +97,7 @@ const Tree:FC<TreeProps> = ({value,onChange,multiple}) => {
     //新选中的路径节点
     return {
       id: node.id,
-      path: idStr,
-      name:node.name,
-      pathName:nameStr
+      path: idStr
     };
   };
 
@@ -160,59 +145,55 @@ const Tree:FC<TreeProps> = ({value,onChange,multiple}) => {
       currentNode.status == "2"
     ) {
       currentNode.status = "1";
-      // prentStatus(currentNode);
+      prentStatus(currentNode);
     } else {
       currentNode.status = "0";
-      // childSelectedR(currentNode);
+      childSelectedR(currentNode);
     }
     let tempArr:Path[] = [];
-    if(!multiple){
-      tempArr = [gennerPathNode(currentNode)];
-    }else{
-      const loopTreeSelected = (nodes:Node[]) => {
-        nodes.forEach((node) => {
-          if (node.status == "1") {
-            tempArr.push(gennerPathNode(node));
-          }
-          if (node.child) {
-            loopTreeSelected(node.child);
-          }
-        });
-      };
-      loopTreeSelected(tree);
-      //和初始path合并去重
-      // tempArr = pathRemoveRepeat([...tempArr, ...path.current]);
-    }
-    path.current = tempArr
+    const loopTreeSelected = (nodes:Node[]) => {
+      nodes.forEach((node) => {
+        if (node.status == "1") {
+          tempArr.push(gennerPathNode(node));
+        }
+        if (node.child) {
+          loopTreeSelected(node.child);
+        }
+      });
+    };
+    loopTreeSelected(tree);
+    //和初始path合并去重
+    tempArr = pathRemoveRepeat([...tempArr, ...path]);
     //清理path
     if (currentNode.status == "1") {
       //选中节点子节点全部取消选中
-      // path.current = tempArr.reduce((prev, current) => {
-      //   let x = prev.filter((item2) => {
-      //     const ids = item2.path.split("/");
-      //     const index = ids.findIndex((id) => parseInt(id) == current.id);
-      //     return index == -1 || index == ids.length - 1;
-      //   });
-      //   return x;
-      // }, tempArr);
+      path = tempArr.reduce((prev, current) => {
+        let x = prev.filter((item2) => {
+          const ids = item2.path.split("/");
+          const index = ids.findIndex((id) => parseInt(id) == current.id);
+          return index == -1 || index == ids.length - 1;
+        });
+        return x;
+      }, tempArr);
     } else {
-      // const { path: crNodePath } = gennerPathNode(currentNode);
-      // const ids = crNodePath.split("/");
-      // //选中节点祖先全部取消选中
-      // path.current = tempArr.filter((item2) => !ids.find((id) => parseInt(id) == item2.id));
-      // //选中节点祖先全部设置为status = '0'
-      // clearPrentStatus(currentNode);
-      // //选中节点子节点全部取消选中
-      // path.current = path.current.reduce((prev, current) => {
-      //   let x = prev.filter((item2) => {
-      //     const ids = item2.path.split("/");
-      //     const index = ids.findIndex((id) => parseInt(id) == current.id);
-      //     return index == -1 || index == ids.length - 1;
-      //   });
-      //   return x;
-      // }, path.current);
+      const { path: crNodePath } = gennerPathNode(currentNode);
+      const ids = crNodePath.split("/");
+      //选中节点祖先全部取消选中
+      path = tempArr.filter((item2) => !ids.find((id) => parseInt(id) == item2.id));
+      //选中节点祖先全部设置为status = '0'
+      clearPrentStatus(currentNode);
+      //选中节点子节点全部取消选中
+      path = path.reduce((prev, current) => {
+        let x = prev.filter((item2) => {
+          const ids = item2.path.split("/");
+          const index = ids.findIndex((id) => parseInt(id) == current.id);
+          return index == -1 || index == ids.length - 1;
+        });
+        return x;
+      }, path);
     }
-    onChange&&onChange(path.current)
+    value = path.map((pathItem) => pathItem.id);
+    initSelected(tree);
   };
 
   const nodeExpandHandler = (node:Node) => {
@@ -246,13 +227,13 @@ const Tree:FC<TreeProps> = ({value,onChange,multiple}) => {
       console.log("异步载入");
     }
     node.isExpand = !node.isExpand;
-    initSelected(tree);
+    console.log(path)
     render()
   }
 
   const checkboxHandler = (node:Node)=>{
     nodeSelectedToggle(node)
-    initSelected(tree);
+    console.log(path)
     render()
   }
 
